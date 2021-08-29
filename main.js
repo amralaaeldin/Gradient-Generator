@@ -1,70 +1,130 @@
 // variables
-let colors = document.querySelectorAll(".color"),
-realcolors = [...colors];
-const container = document.querySelector(".container"),
-h2 = document.querySelector("h2"),
-code = document.querySelector(".code"),
-remove = document.querySelector(".remove"),
-add = document.querySelector(".add");
-window.values = [];
-window.gradientValue = "";
+      const h2 = document.querySelector("h2"),
+        container = document.querySelector(".container"),
+        add = document.querySelector(".add"),
+        remove = document.querySelector(".remove"),
+        reset = document.querySelector(".reset"),
+        code = document.querySelector(".code");
+      let inputs = document.querySelectorAll('input[type="color"]'),
+        realInputs = [...inputs];
+      let arrayOfColors = [],
+        gradientValues;
 
-function refresh() {
-colors = document.querySelectorAll(".color");
-realcolors = [...colors];
-}
+      // get values
+      const refresh = () => {
+        inputs = document.querySelectorAll('input[type="color"]');
+        realInputs = [...inputs];
+      };
+      const getValues = () => {
+        refresh();
+        arrayOfColors = [];
+        for (let i = 0; i < realInputs.length; i++) {
+          arrayOfColors[arrayOfColors.length] = realInputs[i].value;
+          realInputs[i].setAttribute("data-color", realInputs[i].value);
+        }
+        gradientValues = arrayOfColors.join(",");
+        revGradientValues = arrayOfColors.reverse().join(",");
+        arrayOfColors.reverse();
+      };
 
-function getValues() {
-refresh();
-for (let i = 0; i < realcolors.length; i++) {
-  realcolors[i].setAttribute("data-color", realcolors[i].value);
-  window.values[window.values.length] =
-    realcolors[i].getAttribute("data-color");
-  window.gradientValue = window.values.join(",");
+      // make gradient
+      const excute = () => {
+        getValues();
+        document.body.style.backgroundImage = `linear-gradient(to right, ${gradientValues} )`;
+        h2.style.backgroundImage = `linear-gradient(to right, ${revGradientValues} )`;
+        code.innerHTML = document.body.style.backgroundImage;
+        save();
+      };
 
-  realcolors[i].addEventListener("change", () => {
-    realcolors[i].setAttribute("data-color", realcolors[i].value);
-    window.values = [];
-    getValues();
-    excute();
-  });
-}
-}
+      const orders = () => {
+        document.body.style.backgroundImage = `linear-gradient(to right, ${gradientValues} )`;
+        h2.style.backgroundImage = `linear-gradient(to right, ${revGradientValues} )`;
+        code.innerHTML = document.body.style.backgroundImage;
+      };
+      // changing
+      const notice = () => {
+        for (let i = 0; i < realInputs.length; i++) {
+          realInputs[i].addEventListener("input", excute);
+        }
+      };
 
-function excute() {
-document.body.style.backgroundImage = `linear-gradient(to right, ${window.gradientValue} )`;
-h2.style.backgroundImage = `linear-gradient(to right, ${window.values
-  .reverse()
-  .join(",")} )`;
-code.innerHTML = document.body.style.backgroundImage;
-}
+      // add color >> get values make gradient
 
-function createItems() {
-let newColor = document.createElement("input");
-newColor.setAttribute("type", "color");
-newColor.setAttribute("class", "color");
-newColor.setAttribute("data-color", newColor.value);
-container.appendChild(newColor);
-}
+      const createItem = () => {
+        let newColor = document.createElement("input");
+        newColor.setAttribute("type", "color");
+        newColor.setAttribute("data-color", newColor.value);
+        container.appendChild(newColor);
+      };
 
-function createColor() {
-createItems();
-window.values = [];
-getValues();
-excute();
-}
-function removecolor() {
-refresh();
-if (realcolors.length > 2) {
-  document.querySelector(".container input:last-child").remove();
-  window.values = [];
-  getValues();
-  excute();
-}
-}
+      const createColor = () => {
+        createItem();
+        excute();
+        notice();
+      };
 
-getValues();
-excute();
-add.addEventListener("click", createColor);
-remove.addEventListener("click", removecolor);
+      // remove color >> get values make gradient
+      const removeColor = () => {
+        refresh();
+        if (realInputs.length > 2) {
+          document.querySelector(".container input:last-child").remove();
+          arrayOfColors = [];
+          getValues();
+          excute();
+        }
+      };
 
+      const resetDefaults = () => {
+        for (let i = 0; realInputs.length > 2; i++) {
+          removeColor();
+        }
+        localStorage.clear();
+        realInputs[0].setAttribute("data-color", "#ffffff");
+        realInputs[1].setAttribute("data-color", "#000000");
+        realInputs[0].value = realInputs[0].getAttribute("data-color");
+        realInputs[1].value = realInputs[1].getAttribute("data-color");
+        excute();
+      };
+      const save = () => {
+        localStorage.clear();
+        for (let i = 0; i < realInputs.length; i++) {
+          localStorage.setItem(`color${i}`, `${arrayOfColors[i]}`);
+        }
+      };
+      const createMissing = () => {
+        if (localStorage.length > 2) {
+          for (let i = 0; i < localStorage.length - 2; i++) {
+            createItem();
+            notice();
+          }
+        }
+      };
+
+      const lastSession = () => {
+        arrayOfColors = [];
+        createMissing();
+        for (let i = 0; i < localStorage.length; i++) {
+          arrayOfColors[arrayOfColors.length] = localStorage.getItem(
+            `color${i}`
+          );
+          refresh();
+          realInputs[i].setAttribute(
+            "data-color",
+            localStorage.getItem(`color${i}`)
+          );
+          realInputs[i].value = localStorage.getItem(`color${i}`);
+        }
+        gradientValues = arrayOfColors.join(",");
+        revGradientValues = arrayOfColors.reverse().join(",");
+        orders();
+      };
+
+      if (localStorage.length != 0) {
+        lastSession();
+      } else {
+        getValues();
+      }
+      notice();
+      add.addEventListener("click", createColor);
+      remove.addEventListener("click", removeColor);
+      reset.addEventListener("click", resetDefaults);
