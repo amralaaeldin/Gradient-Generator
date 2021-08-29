@@ -61,6 +61,14 @@
         border: none;
         border-radius: 20px;
       }
+      input[type="color"]::-moz-color-swatch {
+        border: none;
+        border-radius: 20px;
+      }
+      input[type="color"]::-o-color-swatch {
+        border: none;
+        border-radius: 20px;
+      }
       input[type="color"]::after {
         content: attr(data-color);
         position: absolute;
